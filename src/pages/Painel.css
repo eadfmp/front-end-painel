@@ -1,0 +1,412 @@
+/* Variáveis de cores e estilos */
+:root {
+    --primary: #1a4b8c;
+    --primary-dark: #0d3a6e;
+    --secondary: #2c6e9c;
+    --accent: #e63946;
+    --success: #2a9d8f;
+    --warning: #e9c46a;
+    --light: #f8f9fa;
+    --dark: #212529;
+    --gray: #6c757d;
+    --gray-light: #e9ecef;
+    --border-radius: 12px;
+    --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    --transition: all 0.3s ease;
+    --manha: #ffd166;
+    --tarde: #f8961e;
+    --noite: #577590;
+    --colunas: 4;
+}
+
+/* Reset e estilos base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f7ff;
+    color: var(--dark);
+    line-height: 1.6;
+}
+
+/* Container principal */
+.painel-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+    /* Impede scroll global */
+
+}
+
+/* Cabeçalho */
+.painel-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+    box-shadow: var(--box-shadow);
+    position: relative;
+    flex-shrink: 0;
+    padding: 15px 30px;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.logo-faculdade {
+    height: 60px;
+    width: auto;
+}
+
+.header-info {
+    text-align: right;
+}
+
+.header-info h1 {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.info-periodo {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    font-size: 1rem;
+}
+
+.periodo,
+.dia {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Conteúdo principal */
+.painel-content {
+    flex: 1;
+    background: white;
+    padding: 30px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.controles {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
+    flex-shrink: 0;
+}
+
+.btn-atualizar {
+    padding: 12px 24px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-atualizar:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.legenda-periodos {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.legenda-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: var(--gray);
+}
+
+.indicador {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+}
+
+.indicador.manha {
+    background-color: var(--manha);
+}
+
+.indicador.tarde {
+    background-color: var(--tarde);
+}
+
+.indicador.noite {
+    background-color: var(--noite);
+}
+
+/* Loading */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(26, 75, 140, 0.2);
+    border-radius: 50%;
+    border-top-color: var(--primary);
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Lista de aulas */
+h2 {
+    color: var(--primary);
+    margin-bottom: 25px;
+    font-size: 1.5rem;
+    position: relative;
+    padding-bottom: 10px;
+    flex-shrink: 0;
+}
+
+h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 4px;
+    background: var(--primary);
+    border-radius: 2px;
+}
+
+/* Grade de aulas - Layout responsivo sem scroll */
+.aulas-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--colunas), 1fr);
+    gap: 20px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.aula-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: var(--transition);
+    border-left: 4px solid var(--primary);
+    border-top: 1px solid var(--gray-light);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 180px;
+}
+
+.aula-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.aula-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.aula-header h3 {
+    color: var(--primary);
+    font-size: 1.2rem;
+    margin-right: 10px;
+    flex: 1;
+}
+
+.turma-badge {
+    padding: 4px 10px;
+    background-color: rgba(26, 75, 140, 0.1);
+    color: var(--primary);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.aula-details p {
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.aula-details p strong {
+    color: var(--dark);
+}
+
+/* Estilo para quando não há aulas */
+.sem-aulas {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--gray);
+}
+
+.icone-sem-aulas {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.sem-aulas h3 {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    color: var(--gray);
+}
+
+.sem-aulas p {
+    font-size: 1.1rem;
+    max-width: 500px;
+    line-height: 1.5;
+}
+
+/* Rodapé */
+.painel-footer {
+    text-align: center;
+    padding: 15px;
+    color: var(--gray);
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    background-color: var(--light);
+    border-top: 1px solid var(--gray-light);
+}
+
+/* Responsividade */
+@media (max-width: 1200px) {
+    .aulas-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+
+    .header-info {
+        text-align: center;
+    }
+
+    .info-periodo {
+        justify-content: center;
+    }
+
+    .aulas-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .painel-header {
+        padding: 15px;
+    }
+
+    .logo-faculdade {
+        height: 50px;
+    }
+
+    .header-info h1 {
+        font-size: 1.5rem;
+    }
+
+    .painel-content {
+        padding: 20px;
+    }
+
+    .controles {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .legenda-periodos {
+        width: 100%;
+        justify-content: space-around;
+    }
+
+    .aulas-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .info-periodo {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .legenda-periodos {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+/* Animações */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.aula-card {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Ajuste de texto longo */
+.aula-header h3 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
