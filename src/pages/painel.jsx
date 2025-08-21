@@ -65,7 +65,7 @@ export default function Painel() {
                     endpoint = `/listar-manha/${dia}`;
             }
 
-            const response = await axios.get(`http://localhost:3000${endpoint}`);
+            const response = await axios.get(`https://back-end-painel.onrender.com${endpoint}`);
             setAulas(response.data);
             ajustarLayout(response.data.length);
         } catch (error) {

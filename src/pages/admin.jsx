@@ -60,7 +60,7 @@ export default function Admin() {
                     endpoint = `/listar-manha/${diaAtual}`;
             }
 
-            const response = await axios.get(`http://localhost:3000${endpoint}`);
+            const response = await axios.get(`https://back-end-painel.onrender.com${endpoint}`);
             setTurmas(response.data);
         } catch (error) {
             console.error('Erro ao buscar aulas:', error);
@@ -99,7 +99,7 @@ export default function Admin() {
                 horarioFim
             };
 
-            const response = await axios.post('http://localhost:3000/add', novaTurma);
+            const response = await axios.post('https://back-end-painel.onrender.com/add', novaTurma);
             
             if (response.status === 201 || response.status === 200) {
                 setMensagem('Turma adicionada com sucesso!');
