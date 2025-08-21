@@ -14,45 +14,59 @@ export default function Admin() {
     const [horarioFim, setHorarioFim] = useState('');
     const [mensagem, setMensagem] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    
+    const obterDiaSemana = () => {
+        const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+        const hoje = new Date();
+        return dias[hoje.getDay()];
+    };
+
+    const determinarPeriodo = () => {
+        const agora = new Date();
+        const horas = agora.getHours();
+
+        if (horas < 12) {
+            return 'Matutino';
+        } else if (horas < 19) {
+            return 'Vespertino';
+        } else {
+            return 'Noturno';
+        }
+    };
 
     useEffect(() => {
-        // Carregar turmas existentes ao montar o componente
         fetchTurmas();
     }, []);
 
     async function fetchTurmas() {
         try {
-            // Aqui você pode implementar a busca das turmas existentes
-            // Exemplo: const response = await axios.get('http://localhost:3000/listar');
-            // setTurmas(response.data);
-            
-            // Dados de exemplo para demonstração
-            setTurmas([
-                {
-                    id: 1,
-                    turma: "A101",
-                    professor: "Carlos Silva",
-                    materia: "Matemática",
-                    diaSemana: "Segunda",
-                    sala: "Sala 12",
-                    periodo: "Manhã",
-                    horarioInicio: "08:00",
-                    horarioFim: "10:00"
-                },
-                {
-                    id: 2,
-                    turma: "B205",
-                    professor: "Maria Santos",
-                    materia: "História",
-                    diaSemana: "Quarta",
-                    sala: "Sala 05",
-                    periodo: "Tarde",
-                    horarioInicio: "14:00",
-                    horarioFim: "16:00"
-                }
-            ]);
+            setIsLoading(true);
+            const periodoAtual = determinarPeriodo();
+            const diaAtual = obterDiaSemana();
+
+            let endpoint = '';
+
+            switch (periodoAtual) {
+                case 'Matutino':
+                    endpoint = `/listar-manha/${diaAtual}`;
+                    break;
+                case 'Vespertino':
+                    endpoint = `/listar-tarde/${diaAtual}`;
+                    break;
+                case 'Noturno':
+                    endpoint = `/listar-noite/${diaAtual}`;
+                    break;
+                default:
+                    endpoint = `/listar-manha/${diaAtual}`;
+            }
+
+            const response = await axios.get(`http://localhost:3000${endpoint}`);
+            setTurmas(response.data);
         } catch (error) {
-            console.error('Erro ao carregar turmas:', error);
+            console.error('Erro ao buscar aulas:', error);
+            setTurmas(dadosExemplo);
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -61,14 +75,12 @@ export default function Admin() {
         setIsLoading(true);
         setMensagem('');
         
-        // Validação básica
         if (!turma || !professor || !materia || !diaSemana || !sala || !periodo || !horarioInicio || !horarioFim) {
             setMensagem('Por favor, preencha todos os campos.');
             setIsLoading(false);
             return;
         }
         
-        // Validação de horário
         if (horarioInicio >= horarioFim) {
             setMensagem('O horário de início deve ser anterior ao horário de término.');
             setIsLoading(false);
@@ -87,7 +99,6 @@ export default function Admin() {
                 horarioFim
             };
 
-            // Enviar para a API
             const response = await axios.post('http://localhost:3000/add', novaTurma);
             
             if (response.status === 201 || response.status === 200) {
@@ -259,7 +270,9 @@ export default function Admin() {
                 
                 <div className="turmas-list">
                     <h2>Turmas Cadastradas</h2>
-                    {turmas.length === 0 ? (
+                    {isLoading ? (
+                        <p className="empty-list">Carregando turmas...</p>
+                    ) : turmas.length === 0 ? (
                         <p className="empty-list">Nenhuma turma cadastrada ainda.</p>
                     ) : (
                         <div className="turmas-grid">
