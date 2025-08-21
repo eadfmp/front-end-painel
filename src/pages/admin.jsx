@@ -15,6 +15,11 @@ export default function Admin() {
     const [mensagem, setMensagem] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     
+    // Estados para o modal
+    const [modalAberto, setModalAberto] = useState(false);
+    const [turmaEditando, setTurmaEditando] = useState(null);
+    const [excluindo, setExcluindo] = useState(false);
+    
     const obterDiaSemana = () => {
         const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
         const hoje = new Date();
@@ -64,7 +69,6 @@ export default function Admin() {
             setTurmas(response.data);
         } catch (error) {
             console.error('Erro ao buscar aulas:', error);
-            setTurmas(dadosExemplo);
         } finally {
             setIsLoading(false);
         }
@@ -121,6 +125,72 @@ export default function Admin() {
             setIsLoading(false);
         }
     }
+
+    // Função para abrir o modal de edição
+    const abrirModalEdicao = (turma) => {
+        setTurmaEditando({...turma});
+        setModalAberto(true);
+        setExcluindo(false);
+    };
+
+    // Função para fechar o modal
+    const fecharModal = () => {
+        setModalAberto(false);
+        setTurmaEditando(null);
+        setExcluindo(false);
+    };
+
+    // Função para salvar as alterações
+    const salvarEdicao = async () => {
+        if (!turmaEditando.turma || !turmaEditando.professor || !turmaEditando.materia || 
+            !turmaEditando.diaSemana || !turmaEditando.sala || !turmaEditando.periodo || 
+            !turmaEditando.horarioInicio || !turmaEditando.horarioFim) {
+            setMensagem('Por favor, preencha todos os campos.');
+            return;
+        }
+        
+        if (turmaEditando.horarioInicio >= turmaEditando.horarioFim) {
+            setMensagem('O horário de início deve ser anterior ao horário de término.');
+            return;
+        }
+
+        try {
+            setIsLoading(true);
+            const response = await axios.put(`https://back-end-painel.onrender.com/atualizar/${turmaEditando._id || turmaEditando.id}`, turmaEditando);
+            
+            if (response.status === 200) {
+                setMensagem('Turma atualizada com sucesso!');
+                // Fechar o modal automaticamente após sucesso
+                fecharModal();
+                fetchTurmas();
+            }
+        } catch (error) {
+            console.error('Erro ao atualizar turma:', error);
+            setMensagem('Erro ao atualizar turma. Verifique os dados e tente novamente.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Função para excluir uma turma
+    const excluirTurma = async () => {
+        try {
+            setIsLoading(true);
+            const response = await axios.delete(`https://back-end-painel.onrender.com/deletar/${turmaEditando._id || turmaEditando.id}`);
+            
+            if (response.status === 200) {
+                setMensagem('Turma excluída com sucesso!');
+                // Fechar o modal automaticamente após sucesso
+                fecharModal();
+                fetchTurmas();
+            }
+        } catch (error) {
+            console.error('Erro ao excluir turma:', error);
+            setMensagem('Erro ao excluir turma. Tente novamente.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <div className="admin-container">
@@ -277,7 +347,7 @@ export default function Admin() {
                     ) : (
                         <div className="turmas-grid">
                             {turmas.map(turma => (
-                                <div key={turma.id} className="turma-card">
+                                <div key={turma._id || turma.id} className="turma-card">
                                     <div className="turma-header">
                                         <h3>{turma.turma} - {turma.materia}</h3>
                                         <span className={`periodo-badge ${turma.periodo.toLowerCase()}`}>
@@ -290,12 +360,182 @@ export default function Admin() {
                                         <p><strong>Sala:</strong> {turma.sala}</p>
                                         <p><strong>Horário:</strong> {turma.horarioInicio} - {turma.horarioFim}</p>
                                     </div>
+                                    <div className="turma-actions">
+                                        <button 
+                                            className="edit-btn"
+                                            onClick={() => abrirModalEdicao(turma)}
+                                        >
+                                            Editar
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>
             </div>
+
+            {/* Modal de Edição/Exclusão */}
+            {modalAberto && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <div className="modal-header">
+                            <h2>{excluindo ? 'Excluir Turma' : 'Editar Turma'}</h2>
+                            <button className="close-btn" onClick={fecharModal}>×</button>
+                        </div>
+                        
+                        <div className="modal-content">
+                            {excluindo ? (
+                                <div className="delete-confirmation">
+                                    <p>Tem certeza que deseja excluir a turma <strong>{turmaEditando.turma}</strong>?</p>
+                                    <p>Esta ação não pode ser desfeita.</p>
+                                    
+                                    <div className="modal-actions">
+                                        <button 
+                                            className="cancel-btn"
+                                            onClick={fecharModal}
+                                            disabled={isLoading}
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button 
+                                            className="delete-confirm-btn"
+                                            onClick={excluirTurma}
+                                            disabled={isLoading}
+                                        >
+                                            {isLoading ? 'Excluindo...' : 'Excluir'}
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label htmlFor="edit-turma">Turma *</label>
+                                            <input
+                                                type="text"
+                                                id="edit-turma"
+                                                value={turmaEditando.turma}
+                                                onChange={(e) => setTurmaEditando({...turmaEditando, turma: e.target.value})}
+                                                required
+                                            />
+                                        </div>
+                                        
+                                        <div className="form-group">
+                                            <label htmlFor="edit-professor">Professor *</label>
+                                            <input
+                                                type="text"
+                                                id="edit-professor"
+                                                value={turmaEditando.professor}
+                                                onChange={(e) => setTurmaEditando({...turmaEditando, professor: e.target.value})}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label htmlFor="edit-materia">Matéria *</label>
+                                            <input
+                                                type="text"
+                                                id="edit-materia"
+                                                value={turmaEditando.materia}
+                                                onChange={(e) => setTurmaEditando({...turmaEditando, materia: e.target.value})}
+                                                required
+                                            />
+                                        </div>
+                                        
+                                        <div className="form-group">
+                                            <label htmlFor="edit-diaSemana">Dia da Semana *</label>
+                                            <select
+                                                id="edit-diaSemana"
+                                                value={turmaEditando.diaSemana}
+                                                onChange={(e) => setTurmaEditando({...turmaEditando, diaSemana: e.target.value})}
+                                                required
+                                            >
+                                                <option value="Segunda">Segunda-feira</option>
+                                                <option value="Terça">Terça-feira</option>
+                                                <option value="Quarta">Quarta-feira</option>
+                                                <option value="Quinta">Quinta-feira</option>
+                                                <option value="Sexta">Sexta-feira</option>
+                                                <option value="Sábado">Sábado</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label htmlFor="edit-sala">Sala *</label>
+                                            <input
+                                                type="text"
+                                                id="edit-sala"
+                                                value={turmaEditando.sala}
+                                                onChange={(e) => setTurmaEditando({...turmaEditando, sala: e.target.value})}
+                                                required
+                                            />
+                                        </div>
+                                        
+                                        <div className="form-group">
+                                            <label htmlFor="edit-periodo">Período *</label>
+                                            <select
+                                                id="edit-periodo"
+                                                value={turmaEditando.periodo}
+                                                onChange={(e) => setTurmaEditando({...turmaEditando, periodo: e.target.value})}
+                                                required
+                                            >
+                                                <option value="Matutino">Manhã</option>
+                                                <option value="Vespertino">Tarde</option>
+                                                <option value="Noturno">Noite</option>
+                                            </select>   
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label htmlFor="edit-horarioInicio">Horário de Início *</label>
+                                            <input
+                                                type="time"
+                                                id="edit-horarioInicio"
+                                                value={turmaEditando.horarioInicio}
+                                                onChange={(e) => setTurmaEditando({...turmaEditando, horarioInicio: e.target.value})}
+                                                required
+                                            />
+                                        </div>
+                                        
+                                        <div className="form-group">
+                                            <label htmlFor="edit-horarioFim">Horário de Término *</label>
+                                            <input
+                                                type="time"
+                                                id="edit-horarioFim"
+                                                value={turmaEditando.horarioFim}
+                                                onChange={(e) => setTurmaEditando({...turmaEditando, horarioFim: e.target.value})}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="modal-actions">
+                                        <button 
+                                            className="delete-btn"
+                                            onClick={() => setExcluindo(true)}
+                                            disabled={isLoading}
+                                        >
+                                            Excluir
+                                        </button>
+                                        <button 
+                                            className="save-btn"
+                                            onClick={salvarEdicao}
+                                            disabled={isLoading}
+                                        >
+                                            {isLoading ? 'Salvando...' : 'Salvar Alterações'}
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
