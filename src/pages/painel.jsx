@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
-import Image1 from  '../assets/logo.png'
+import Image1 from '../assets/logo.png';
 import './Painel.css';
 
 export default function Painel() {
@@ -8,7 +8,9 @@ export default function Painel() {
     const [loading, setLoading] = useState(true);
     const [periodoAtual, setPeriodoAtual] = useState('');
     const [diaAtual, setDiaAtual] = useState('');
-    const [colunas, setColunas] = useState(4); 
+    
+
+
     const obterDiaSemana = () => {
         const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
         const hoje = new Date();
@@ -25,18 +27,6 @@ export default function Painel() {
             return 'Vespertino';
         } else {
             return 'Noturno';
-        }
-    };
-
-    const ajustarLayout = (quantidadeAulas) => {
-        if (quantidadeAulas <= 4) {
-            setColunas(quantidadeAulas || 1); 
-        } else if (quantidadeAulas <= 9) {
-            setColunas(3);
-        } else if (quantidadeAulas <= 16) {
-            setColunas(4);
-        } else {
-            setColunas(5);
         }
     };
 
@@ -67,11 +57,9 @@ export default function Painel() {
 
             const response = await axios.get(`https://back-end-painel.onrender.com${endpoint}`);
             setAulas(response.data);
-            ajustarLayout(response.data.length);
         } catch (error) {
             console.error('Erro ao buscar aulas:', error);
             setAulas(dadosExemplo);
-            ajustarLayout(dadosExemplo.length);
         } finally {
             setLoading(false);
         }
@@ -82,7 +70,7 @@ export default function Painel() {
 
         const interval = setInterval(() => {
             buscarAulas();
-        }, 3600000); 
+        }, 3600000);
 
         return () => clearInterval(interval);
     }, []);
@@ -106,37 +94,15 @@ export default function Painel() {
             <header className="painel-header">
                 <div className="header-content">
                     <a href="/admin">
-                    <img src={Image1} alt="Logo da Faculdade" className="logo-faculdade" />
+                        <img src={Image1} alt="Logo da Faculdade" className="logo-faculdade" />
                     </a>
                     <div className="header-info">
                         <h1>Sistema de Gestão de Salas</h1>
-                        <div className="info-periodo">
-                        </div>
                     </div>
                 </div>
             </header>
 
             <div className="painel-content">
-                <div className="controles">
-                    <button onClick={buscarAulas} className="btn-atualizar">
-                        Atualizar
-                    </button>
-                    <div className="legenda-periodos">
-                        <div className="legenda-item">
-                            <span className="indicador manha"></span>
-                            <span>Matutino (antes das 12h)</span>
-                        </div>
-                        <div className="legenda-item">
-                            <span className="indicador tarde"></span>
-                            <span>Vespertino (12h - 19h)</span>
-                        </div>
-                        <div className="legenda-item">
-                            <span className="indicador noite"></span>
-                            <span>Noturno (após 19h)</span>
-                        </div>
-                    </div>
-                </div>
-
                 {loading ? (
                     <div className="loading-container">
                         <div className="spinner"></div>
@@ -153,20 +119,22 @@ export default function Painel() {
                                 <p>Não há aulas agendadas para o período {periodoAtual.toLowerCase()} de {diaAtual}.</p>
                             </div>
                         ) : (
-                            <div className="aulas-grid" style={{ '--colunas': colunas }}>
-                                {aulas.map(aula => (
-                                    <div key={aula.id} className="aula-card">
-                                        <div className="aula-header">
-                                            <h3>{aula.materia}</h3>
-                                            <span className="turma-badge">{aula.turma}</span>
+                            <div className="aulas-grid-container">
+                                <div className="aulas-grid">
+                                    {aulas.map(aula => (
+                                        <div key={aula.id} className="aula-card">
+                                            <div className="aula-header">
+                                                <h3>{aula.materia}</h3>
+                                                <span className="turma-badge">{aula.turma}</span>
+                                            </div>
+                                            <div className="aula-details">
+                                                <p><strong>Professor:</strong> {aula.professor}</p>
+                                                <p><strong>Sala:</strong> {aula.sala}</p>
+                                                <p><strong>Horário:</strong> {formatarHorario(aula.horarioInicio)} - {formatarHorario(aula.horarioFim)}</p>
+                                            </div>
                                         </div>
-                                        <div className="aula-details">
-                                            <p><strong>Professor:</strong> {aula.professor}</p>
-                                            <p><strong>Sala:</strong> {aula.sala}</p>
-                                            <p><strong>Horário:</strong> {formatarHorario(aula.horarioInicio)} - {formatarHorario(aula.horarioFim)}</p>
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </>

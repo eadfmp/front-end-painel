@@ -16,7 +16,6 @@
     --manha: #ffd166;
     --tarde: #f8961e;
     --noite: #577590;
-    --colunas: 4;
 }
 
 /* Reset e estilos base */
@@ -31,18 +30,15 @@ body {
     background-color: #f5f7ff;
     color: var(--dark);
     line-height: 1.6;
+    overflow-x: hidden;
 }
 
 /* Container principal */
 .painel-container {
-    width: 100vw;
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    padding: 0;
-    overflow: hidden;
-    /* Impede scroll global */
-
+    overflow-x: hidden;
 }
 
 /* Cabeçalho */
@@ -61,6 +57,7 @@ body {
     justify-content: space-between;
     max-width: 1400px;
     margin: 0 auto;
+    width: 100%;
 }
 
 .logo-faculdade {
@@ -99,9 +96,6 @@ body {
     flex: 1;
     background: white;
     padding: 30px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
     max-width: 1400px;
     margin: 0 auto;
     width: 100%;
@@ -114,7 +108,6 @@ body {
     margin-bottom: 30px;
     flex-wrap: wrap;
     gap: 15px;
-    flex-shrink: 0;
 }
 
 .btn-atualizar {
@@ -126,6 +119,7 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
+    white-space: nowrap;
 }
 
 .btn-atualizar:hover {
@@ -172,7 +166,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    flex: 1;
+    padding: 60px 0;
 }
 
 .spinner {
@@ -198,7 +192,6 @@ h2 {
     font-size: 1.5rem;
     position: relative;
     padding-bottom: 10px;
-    flex-shrink: 0;
 }
 
 h2::after {
@@ -212,13 +205,12 @@ h2::after {
     border-radius: 2px;
 }
 
-/* Grade de aulas - Layout responsivo sem scroll */
+/* Grade de aulas - Layout responsivo */
 .aulas-grid {
     display: grid;
-    grid-template-columns: repeat(var(--colunas), 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
-    flex: 1;
-    overflow: hidden;
+    width: 100%;
 }
 
 .aula-card {
@@ -231,7 +223,6 @@ h2::after {
     border-top: 1px solid var(--gray-light);
     display: flex;
     flex-direction: column;
-    justify-content: center;
     min-height: 180px;
 }
 
@@ -279,9 +270,8 @@ h2::after {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    flex: 1;
     text-align: center;
-    padding: 40px 20px;
+    padding: 60px 20px;
     color: var(--gray);
 }
 
@@ -312,12 +302,13 @@ h2::after {
     flex-shrink: 0;
     background-color: var(--light);
     border-top: 1px solid var(--gray-light);
+    margin-top: auto;
 }
 
 /* Responsividade */
 @media (max-width: 1200px) {
     .aulas-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     }
 }
 
@@ -335,9 +326,9 @@ h2::after {
     .info-periodo {
         justify-content: center;
     }
-
-    .aulas-grid {
-        grid-template-columns: repeat(2, 1fr);
+    
+    .painel-content {
+        padding: 20px;
     }
 }
 
@@ -354,10 +345,6 @@ h2::after {
         font-size: 1.5rem;
     }
 
-    .painel-content {
-        padding: 20px;
-    }
-
     .controles {
         flex-direction: column;
         align-items: flex-start;
@@ -367,7 +354,7 @@ h2::after {
         width: 100%;
         justify-content: space-around;
     }
-
+    
     .aulas-grid {
         grid-template-columns: 1fr;
     }
@@ -382,6 +369,15 @@ h2::after {
     .legenda-periodos {
         flex-direction: column;
         gap: 10px;
+    }
+    
+    .aula-card {
+        min-height: 160px;
+        padding: 15px;
+    }
+    
+    .aula-header h3 {
+        font-size: 1.1rem;
     }
 }
 
