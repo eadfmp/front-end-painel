@@ -7,7 +7,7 @@ export default function Admin() {
     const [turma, setTurma] = useState('');
     const [professor, setProfessor] = useState('');
     const [materia, setMateria] = useState('');
-    const [diaSemana, setDiaSemana] = useState('');
+    const [data, setData] = useState('');
     const [sala, setSala] = useState('');
     const [periodo, setPeriodo] = useState('');
     const [horarioInicio, setHorarioInicio] = useState('');
@@ -15,54 +15,52 @@ export default function Admin() {
     const [mensagem, setMensagem] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     
-    // Estados para o modal
     const [modalAberto, setModalAberto] = useState(false);
     const [turmaEditando, setTurmaEditando] = useState(null);
     const [excluindo, setExcluindo] = useState(false);
-    
-    const obterDiaSemana = () => {
-        const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
+    // CORRIGIDO: Obter data correta sem voltar um dia
+    const obterDataAtual = () => {
         const hoje = new Date();
-        return dias[hoje.getDay()];
+        const dataBR = hoje.toLocaleDateString('pt-BR'); // DD/MM/YYYY correto
+        const [dia, mes, ano] = dataBR.split('/');
+        return `${ano}-${mes}-${dia}`; // YYYY-MM-DD sem UTC
     };
 
     const determinarPeriodo = () => {
         const agora = new Date();
         const horas = agora.getHours();
 
-        if (horas < 12) {
-            return 'Matutino';
-        } else if (horas < 19) {
-            return 'Vespertino';
-        } else {
-            return 'Noturno';
-        }
+        if (horas < 12) return 'Matutino';
+        if (horas < 19) return 'Vespertino';
+        return 'Noturno';
     };
 
     useEffect(() => {
         fetchTurmas();
+        setData(obterDataAtual());
     }, []);
 
     async function fetchTurmas() {
         try {
             setIsLoading(true);
             const periodoAtual = determinarPeriodo();
-            const diaAtual = obterDiaSemana();
+            const dataAtual = obterDataAtual();
 
             let endpoint = '';
 
             switch (periodoAtual) {
                 case 'Matutino':
-                    endpoint = `/listar-manha/${diaAtual}`;
+                    endpoint = `/listar-manha/${dataAtual}`;
                     break;
                 case 'Vespertino':
-                    endpoint = `/listar-tarde/${diaAtual}`;
+                    endpoint = `/listar-tarde/${dataAtual}`;
                     break;
                 case 'Noturno':
-                    endpoint = `/listar-noite/${diaAtual}`;
+                    endpoint = `/listar-noite/${dataAtual}`;
                     break;
                 default:
-                    endpoint = `/listar-manha/${diaAtual}`;
+                    endpoint = `/listar-manha/${dataAtual}`;
             }
 
             const response = await axios.get(`https://back-end-painel.onrender.com${endpoint}`);
@@ -79,7 +77,7 @@ export default function Admin() {
         setIsLoading(true);
         setMensagem('');
         
-        if (!turma || !professor || !materia || !diaSemana || !sala || !periodo || !horarioInicio || !horarioFim) {
+        if (!turma || !professor || !materia || !data || !sala || !periodo || !horarioInicio || !horarioFim) {
             setMensagem('Por favor, preencha todos os campos.');
             setIsLoading(false);
             return;
@@ -96,7 +94,7 @@ export default function Admin() {
                 turma,
                 professor,
                 materia,
-                diaSemana,
+                data,
                 sala,
                 periodo,
                 horarioInicio,
@@ -107,10 +105,10 @@ export default function Admin() {
             
             if (response.status === 201 || response.status === 200) {
                 setMensagem('Turma adicionada com sucesso!');
+                
                 setTurma('');
                 setProfessor('');
                 setMateria('');
-                setDiaSemana('');
                 setSala('');
                 setPeriodo('');
                 setHorarioInicio('');
@@ -126,24 +124,30 @@ export default function Admin() {
         }
     }
 
-    // Função para abrir o modal de edição
+    // Formatar exibição DD/MM/YYYY
+    const formatarDataExibicao = (dataString) => {
+        const data = new Date(dataString);
+        return data.toLocaleDateString('pt-BR');
+    };
+
     const abrirModalEdicao = (turma) => {
-        setTurmaEditando({...turma});
+        setTurmaEditando({
+            ...turma,
+            data: turma.data ? new Date(turma.data).toISOString().split('T')[0] : obterDataAtual()
+        });
         setModalAberto(true);
         setExcluindo(false);
     };
 
-    // Função para fechar o modal
     const fecharModal = () => {
         setModalAberto(false);
         setTurmaEditando(null);
         setExcluindo(false);
     };
 
-    // Função para salvar as alterações
     const salvarEdicao = async () => {
         if (!turmaEditando.turma || !turmaEditando.professor || !turmaEditando.materia || 
-            !turmaEditando.diaSemana || !turmaEditando.sala || !turmaEditando.periodo || 
+            !turmaEditando.data || !turmaEditando.sala || !turmaEditando.periodo || 
             !turmaEditando.horarioInicio || !turmaEditando.horarioFim) {
             setMensagem('Por favor, preencha todos os campos.');
             return;
@@ -160,7 +164,6 @@ export default function Admin() {
             
             if (response.status === 200) {
                 setMensagem('Turma atualizada com sucesso!');
-                // Fechar o modal automaticamente após sucesso
                 fecharModal();
                 fetchTurmas();
             }
@@ -172,24 +175,38 @@ export default function Admin() {
         }
     };
 
-    // Função para excluir uma turma
+    // FUNÇÃO EXCLUIR TURMA CORRIGIDA
     const excluirTurma = async () => {
         try {
             setIsLoading(true);
-            const response = await axios.delete(`https://back-end-painel.onrender.com/deletar/${turmaEditando._id || turmaEditando.id}`);
+            const response = await axios.delete(`https://back-end-painel.onrender.com/deletar/${turmaEditando.id}`);
             
-            if (response.status === 200) {
-                setMensagem('Turma excluída com sucesso!');
-                // Fechar o modal automaticamente após sucesso
+            if (response.status === 200 || response.status === 204) {
+                // Fecha o modal primeiro
                 fecharModal();
+                // Depois mostra a mensagem de sucesso
+                setMensagem('Turma excluída com sucesso!');
+                // Atualiza a lista de turmas
                 fetchTurmas();
             }
         } catch (error) {
             console.error('Erro ao excluir turma:', error);
+            // Fecha o modal mesmo em caso de erro
+            fecharModal();
             setMensagem('Erro ao excluir turma. Tente novamente.');
         } finally {
             setIsLoading(false);
         }
+    };
+
+    // FUNÇÃO PARA CONFIRMAR EXCLUSÃO
+    const confirmarExclusao = () => {
+        setExcluindo(true);
+    };
+
+    // FUNÇÃO PARA CANCELAR EXCLUSÃO
+    const cancelarExclusao = () => {
+        setExcluindo(false);
     };
 
     return (
@@ -250,21 +267,14 @@ export default function Admin() {
                             </div>
                             
                             <div className="form-group">
-                                <label htmlFor="diaSemana">Dia da Semana *</label>
-                                <select
-                                    id="diaSemana"
-                                    value={diaSemana}
-                                    onChange={(e) => setDiaSemana(e.target.value)}
+                                <label htmlFor="data">Data *</label>
+                                <input
+                                    type="date"
+                                    id="data"
+                                    value={data}
+                                    onChange={(e) => setData(e.target.value)}
                                     required
-                                >
-                                    <option value="">Selecione um dia</option>
-                                    <option value="Segunda">Segunda-feira</option>
-                                    <option value="Terça">Terça-feira</option>
-                                    <option value="Quarta">Quarta-feira</option>
-                                    <option value="Quinta">Quinta-feira</option>
-                                    <option value="Sexta">Sexta-feira</option>
-                                    <option value="Sábado">Sábado</option>
-                                </select>
+                                />
                             </div>
                         </div>
                         
@@ -339,11 +349,11 @@ export default function Admin() {
                 </div>
                 
                 <div className="turmas-list">
-                    <h2>Turmas Cadastradas</h2>
+                    <h2>Turmas Cadastradas para Hoje</h2>
                     {isLoading ? (
                         <p className="empty-list">Carregando turmas...</p>
                     ) : turmas.length === 0 ? (
-                        <p className="empty-list">Nenhuma turma cadastrada ainda.</p>
+                        <p className="empty-list">Nenhuma turma cadastrada para hoje.</p>
                     ) : (
                         <div className="turmas-grid">
                             {turmas.map(turma => (
@@ -356,7 +366,7 @@ export default function Admin() {
                                     </div>
                                     <div className="turma-details">
                                         <p><strong>Professor:</strong> {turma.professor}</p>
-                                        <p><strong>Dia:</strong> {turma.diaSemana}</p>
+                                        <p><strong>Data:</strong> {formatarDataExibicao(turma.data)}</p>
                                         <p><strong>Sala:</strong> {turma.sala}</p>
                                         <p><strong>Horário:</strong> {turma.horarioInicio} - {turma.horarioFim}</p>
                                     </div>
@@ -375,7 +385,6 @@ export default function Admin() {
                 </div>
             </div>
 
-            {/* Modal de Edição/Exclusão */}
             {modalAberto && (
                 <div className="modal-overlay">
                     <div className="modal">
@@ -393,7 +402,7 @@ export default function Admin() {
                                     <div className="modal-actions">
                                         <button 
                                             className="cancel-btn"
-                                            onClick={fecharModal}
+                                            onClick={cancelarExclusao}
                                             disabled={isLoading}
                                         >
                                             Cancelar
@@ -446,20 +455,14 @@ export default function Admin() {
                                         </div>
                                         
                                         <div className="form-group">
-                                            <label htmlFor="edit-diaSemana">Dia da Semana *</label>
-                                            <select
-                                                id="edit-diaSemana"
-                                                value={turmaEditando.diaSemana}
-                                                onChange={(e) => setTurmaEditando({...turmaEditando, diaSemana: e.target.value})}
+                                            <label htmlFor="edit-data">Data *</label>
+                                            <input
+                                                type="date"
+                                                id="edit-data"
+                                                value={turmaEditando.data}
+                                                onChange={(e) => setTurmaEditando({...turmaEditando, data: e.target.value})}
                                                 required
-                                            >
-                                                <option value="Segunda">Segunda-feira</option>
-                                                <option value="Terça">Terça-feira</option>
-                                                <option value="Quarta">Quarta-feira</option>
-                                                <option value="Quinta">Quinta-feira</option>
-                                                <option value="Sexta">Sexta-feira</option>
-                                                <option value="Sábado">Sábado</option>
-                                            </select>
+                                            />
                                         </div>
                                     </div>
                                     
@@ -517,7 +520,7 @@ export default function Admin() {
                                     <div className="modal-actions">
                                         <button 
                                             className="delete-btn"
-                                            onClick={() => setExcluindo(true)}
+                                            onClick={confirmarExclusao}
                                             disabled={isLoading}
                                         >
                                             Excluir

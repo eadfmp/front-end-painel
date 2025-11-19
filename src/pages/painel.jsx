@@ -7,59 +7,71 @@ export default function Painel() {
     const [aulas, setAulas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [periodoAtual, setPeriodoAtual] = useState('');
-    const [diaAtual, setDiaAtual] = useState('');
-    
+    const [dataAtual, setDataAtual] = useState('');
+
+    const obterDataAtual = () => {
+    const hoje = new Date();
+
+    const dataBR = hoje.toLocaleDateString('pt-BR');
+
+    const [dia, mes, ano] = dataBR.split('/');
+
+    return `${ano}-${mes}-${dia}`;
+};
 
 
-    const obterDiaSemana = () => {
-        const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-        const hoje = new Date();
-        return dias[hoje.getDay()];
+    const formatarDataExibicao = (dataString) => {
+        if (!dataString) return '';
+
+        const partes = dataString.split('-');
+        const dataFormatada = partes.reverse().join('/');
+
+        return dataFormatada;
     };
 
     const determinarPeriodo = () => {
         const agora = new Date();
         const horas = agora.getHours();
 
-        if (horas < 12) {
-            return 'Matutino';
-        } else if (horas < 19) {
-            return 'Vespertino';
-        } else {
-            return 'Noturno';
-        }
+        if (horas < 12) return 'Matutino';
+        if (horas < 19) return 'Vespertino';
+        return 'Noturno';
     };
 
     const buscarAulas = async () => {
         try {
             setLoading(true);
+
             const periodo = determinarPeriodo();
             setPeriodoAtual(periodo);
 
-            const dia = obterDiaSemana();
-            setDiaAtual(dia);
+            const data = obterDataAtual();
+            setDataAtual(data);
 
             let endpoint = '';
 
             switch (periodo) {
                 case 'Matutino':
-                    endpoint = `/listar-manha/${dia}`;
+                    endpoint = `/listar-manha/${data}`;
                     break;
                 case 'Vespertino':
-                    endpoint = `/listar-tarde/${dia}`;
+                    endpoint = `/listar-tarde/${data}`;
                     break;
                 case 'Noturno':
-                    endpoint = `/listar-noite/${dia}`;
+                    endpoint = `/listar-noite/${data}`;
                     break;
                 default:
-                    endpoint = `/listar-manha/${dia}`;
+                    endpoint = `/listar-manha/${data}`;
             }
+
+            console.log('🔍 Fazendo requisição para:', endpoint);
 
             const response = await axios.get(`https://back-end-painel.onrender.com${endpoint}`);
             setAulas(response.data);
+
         } catch (error) {
-            console.error('Erro ao buscar aulas:', error);
-            setAulas(dadosExemplo);
+            console.error('❌ Erro ao buscar aulas:', error);
+            setAulas([]);
         } finally {
             setLoading(false);
         }
@@ -77,14 +89,7 @@ export default function Painel() {
 
     const formatarHorario = (horario) => {
         if (!horario) return '';
-
-        if (horario.includes(':')) {
-            return horario;
-        }
-
-        if (horario instanceof Date) {
-            return horario.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        }
+        if (horario.includes(':')) return horario.slice(0,5);
 
         return horario;
     };
@@ -98,6 +103,8 @@ export default function Painel() {
                     </a>
                     <div className="header-info">
                         <h1>Sistema de Gestão de Salas</h1>
+                        <p className="data-atual">
+                        </p>
                     </div>
                 </div>
             </header>
@@ -111,12 +118,17 @@ export default function Painel() {
                 ) : (
                     <>
                         <h2>Aulas do Período {periodoAtual}</h2>
+                        <p className="data-exibicao">
+                        </p>
 
                         {aulas.length === 0 ? (
                             <div className="sem-aulas">
                                 <div className="icone-sem-aulas">📚</div>
                                 <h3>Nenhuma aula neste período</h3>
-                                <p>Não há aulas agendadas para o período {periodoAtual.toLowerCase()} de {diaAtual}.</p>
+                                <p>
+                                    Não há aulas agendadas para o período {periodoAtual.toLowerCase()}
+                                    de {dataAtual && formatarDataExibicao(dataAtual)}.
+                                </p>
                             </div>
                         ) : (
                             <div className="aulas-grid-container">
@@ -130,7 +142,10 @@ export default function Painel() {
                                             <div className="aula-details">
                                                 <p><strong>Professor:</strong> {aula.professor}</p>
                                                 <p><strong>Sala:</strong> {aula.sala}</p>
-                                                <p><strong>Horário:</strong> {formatarHorario(aula.horarioInicio)} - {formatarHorario(aula.horarioFim)}</p>
+                                                <p>
+                                                    <strong>Horário: </strong>
+                                                    {formatarHorario(aula.horarioInicio)} - {formatarHorario(aula.horarioFim)}
+                                                </p>
                                             </div>
                                         </div>
                                     ))}
