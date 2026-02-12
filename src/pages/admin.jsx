@@ -102,7 +102,9 @@ export default function Admin() {
             };
             const token = localStorage.getItem("token")
             const response = await axios.post('https://back-end-painel.onrender.com/add', novaTurma,{
-             Authorization : `Bearer ${token}`   
+                headers:{
+                Authorization : `Bearer ${token}`   
+                }
             });
             
             if (response.status === 201 || response.status === 200) {
