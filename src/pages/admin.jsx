@@ -100,8 +100,10 @@ export default function Admin() {
                 horarioInicio,
                 horarioFim
             };
-
-            const response = await axios.post('https://back-end-painel.onrender.com/add', novaTurma);
+            const token = localStorage.getItem(token)
+            const response = await axios.post('https://back-end-painel.onrender.com/add', novaTurma,{
+             Authorization : `Bearer ${token}`   
+            });
             
             if (response.status === 201 || response.status === 200) {
                 setMensagem('Turma adicionada com sucesso!');
