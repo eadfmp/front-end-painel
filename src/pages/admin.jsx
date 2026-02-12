@@ -100,7 +100,7 @@ export default function Admin() {
                 horarioInicio,
                 horarioFim
             };
-            const token = localStorage.getItem(token)
+            const token = localStorage.getItem("token")
             const response = await axios.post('https://back-end-painel.onrender.com/add', novaTurma,{
              Authorization : `Bearer ${token}`   
             });
