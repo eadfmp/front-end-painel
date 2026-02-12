@@ -14,7 +14,7 @@ export default function Admin() {
     const [horarioFim, setHorarioFim] = useState('');
     const [mensagem, setMensagem] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    
+
     const [modalAberto, setModalAberto] = useState(false);
     const [turmaEditando, setTurmaEditando] = useState(null);
     const [excluindo, setExcluindo] = useState(false);
@@ -76,13 +76,13 @@ export default function Admin() {
         e.preventDefault();
         setIsLoading(true);
         setMensagem('');
-        
+
         if (!turma || !professor || !materia || !data || !sala || !periodo || !horarioInicio || !horarioFim) {
             setMensagem('Por favor, preencha todos os campos.');
             setIsLoading(false);
             return;
         }
-        
+
         if (horarioInicio >= horarioFim) {
             setMensagem('O horário de início deve ser anterior ao horário de término.');
             setIsLoading(false);
@@ -101,15 +101,15 @@ export default function Admin() {
                 horarioFim
             };
             const token = localStorage.getItem("token")
-            const response = await axios.post('https://back-end-painel.onrender.com/add', novaTurma,{
-                headers:{
-                Authorization : `Bearer ${token}`   
+            const response = await axios.post('https://back-end-painel.onrender.com/add', novaTurma, {
+                headers: {
+                    Authorization: `Bearer ${token}`
                 }
             });
-            
+
             if (response.status === 201 || response.status === 200) {
                 setMensagem('Turma adicionada com sucesso!');
-                
+
                 setTurma('');
                 setProfessor('');
                 setMateria('');
@@ -117,7 +117,7 @@ export default function Admin() {
                 setPeriodo('');
                 setHorarioInicio('');
                 setHorarioFim('');
-                
+
                 fetchTurmas();
             }
         } catch (error) {
@@ -150,22 +150,27 @@ export default function Admin() {
     };
 
     const salvarEdicao = async () => {
-        if (!turmaEditando.turma || !turmaEditando.professor || !turmaEditando.materia || 
-            !turmaEditando.data || !turmaEditando.sala || !turmaEditando.periodo || 
+        if (!turmaEditando.turma || !turmaEditando.professor || !turmaEditando.materia ||
+            !turmaEditando.data || !turmaEditando.sala || !turmaEditando.periodo ||
             !turmaEditando.horarioInicio || !turmaEditando.horarioFim) {
             setMensagem('Por favor, preencha todos os campos.');
             return;
         }
-        
+
         if (turmaEditando.horarioInicio >= turmaEditando.horarioFim) {
             setMensagem('O horário de início deve ser anterior ao horário de término.');
             return;
         }
 
         try {
+            const token = localStorage.getItem("token");
             setIsLoading(true);
-            const response = await axios.put(`https://back-end-painel.onrender.com/atualizar/${turmaEditando._id || turmaEditando.id}`, turmaEditando);
-            
+            const response = await axios.put(`https://back-end-painel.onrender.com/atualizar/${turmaEditando._id || turmaEditando.id}`, turmaEditando, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
             if (response.status === 200) {
                 setMensagem('Turma atualizada com sucesso!');
                 fecharModal();
@@ -183,8 +188,14 @@ export default function Admin() {
     const excluirTurma = async () => {
         try {
             setIsLoading(true);
-            const response = await axios.delete(`https://back-end-painel.onrender.com/deletar/${turmaEditando.id}`);
-            
+            const token = localStorage.getItem("token");
+
+            const response = await axios.delete(`https://back-end-painel.onrender.com/deletar/${turmaEditando.id}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
             if (response.status === 200 || response.status === 204) {
                 // Fecha o modal primeiro
                 fecharModal();
@@ -219,17 +230,17 @@ export default function Admin() {
                 <h1>Painel de Administração</h1>
                 <p>Gerenciamento de Turmas e Horários</p>
             </header>
-            
+
             <div className="admin-content">
                 <div className="form-section">
                     <h2>Adicionar Nova Turma</h2>
-                    
+
                     {mensagem && (
                         <div className={`message ${mensagem.includes('Erro') ? 'error' : 'success'}`}>
                             {mensagem}
                         </div>
                     )}
-                    
+
                     <form onSubmit={addTurma} className="turma-form">
                         <div className="form-row">
                             <div className="form-group">
@@ -243,7 +254,7 @@ export default function Admin() {
                                     placeholder="Turma"
                                 />
                             </div>
-                            
+
                             <div className="form-group">
                                 <label htmlFor="professor">Professor *</label>
                                 <input
@@ -256,7 +267,7 @@ export default function Admin() {
                                 />
                             </div>
                         </div>
-                        
+
                         <div className="form-row">
                             <div className="form-group">
                                 <label htmlFor="materia">Matéria *</label>
@@ -269,7 +280,7 @@ export default function Admin() {
                                     placeholder="Nome da matéria"
                                 />
                             </div>
-                            
+
                             <div className="form-group">
                                 <label htmlFor="data">Data *</label>
                                 <input
@@ -281,7 +292,7 @@ export default function Admin() {
                                 />
                             </div>
                         </div>
-                        
+
                         <div className="form-row">
                             <div className="form-group">
                                 <label htmlFor="sala">Sala *</label>
@@ -294,7 +305,7 @@ export default function Admin() {
                                     placeholder="Número da sala"
                                 />
                             </div>
-                            
+
                             <div className="form-group">
                                 <label htmlFor="periodo">Período *</label>
                                 <select
@@ -307,10 +318,10 @@ export default function Admin() {
                                     <option value="Matutino">Manhã</option>
                                     <option value="Vespertino">Tarde</option>
                                     <option value="Noturno">Noite</option>
-                                </select>   
+                                </select>
                             </div>
                         </div>
-                        
+
                         <div className="form-row">
                             <div className="form-group">
                                 <label htmlFor="horarioInicio">Horário de Início *</label>
@@ -322,7 +333,7 @@ export default function Admin() {
                                     required
                                 />
                             </div>
-                            
+
                             <div className="form-group">
                                 <label htmlFor="horarioFim">Horário de Término *</label>
                                 <input
@@ -334,9 +345,9 @@ export default function Admin() {
                                 />
                             </div>
                         </div>
-                        
-                        <button 
-                            type="submit" 
+
+                        <button
+                            type="submit"
                             className={`submit-btn ${isLoading ? 'loading' : ''}`}
                             disabled={isLoading}
                         >
@@ -349,9 +360,17 @@ export default function Admin() {
                                 'Adicionar Turma'
                             )}
                         </button>
+                        <button
+                            type="button"
+                            className="submit-btn"
+                            onClick={() => window.location.href = "/"}
+                        >
+                            Voltar para a tela inicial
+                        </button>
+
                     </form>
                 </div>
-                
+
                 <div className="turmas-list">
                     <h2>Turmas Cadastradas para Hoje</h2>
                     {isLoading ? (
@@ -375,7 +394,7 @@ export default function Admin() {
                                         <p><strong>Horário:</strong> {turma.horarioInicio} - {turma.horarioFim}</p>
                                     </div>
                                     <div className="turma-actions">
-                                        <button 
+                                        <button
                                             className="edit-btn"
                                             onClick={() => abrirModalEdicao(turma)}
                                         >
@@ -396,22 +415,22 @@ export default function Admin() {
                             <h2>{excluindo ? 'Excluir Turma' : 'Editar Turma'}</h2>
                             <button className="close-btn" onClick={fecharModal}>×</button>
                         </div>
-                        
+
                         <div className="modal-content">
                             {excluindo ? (
                                 <div className="delete-confirmation">
                                     <p>Tem certeza que deseja excluir a turma <strong>{turmaEditando.turma}</strong>?</p>
                                     <p>Esta ação não pode ser desfeita.</p>
-                                    
+
                                     <div className="modal-actions">
-                                        <button 
+                                        <button
                                             className="cancel-btn"
                                             onClick={cancelarExclusao}
                                             disabled={isLoading}
                                         >
                                             Cancelar
                                         </button>
-                                        <button 
+                                        <button
                                             className="delete-confirm-btn"
                                             onClick={excluirTurma}
                                             disabled={isLoading}
@@ -429,23 +448,23 @@ export default function Admin() {
                                                 type="text"
                                                 id="edit-turma"
                                                 value={turmaEditando.turma}
-                                                onChange={(e) => setTurmaEditando({...turmaEditando, turma: e.target.value})}
+                                                onChange={(e) => setTurmaEditando({ ...turmaEditando, turma: e.target.value })}
                                                 required
                                             />
                                         </div>
-                                        
+
                                         <div className="form-group">
                                             <label htmlFor="edit-professor">Professor *</label>
                                             <input
                                                 type="text"
                                                 id="edit-professor"
                                                 value={turmaEditando.professor}
-                                                onChange={(e) => setTurmaEditando({...turmaEditando, professor: e.target.value})}
+                                                onChange={(e) => setTurmaEditando({ ...turmaEditando, professor: e.target.value })}
                                                 required
                                             />
                                         </div>
                                     </div>
-                                    
+
                                     <div className="form-row">
                                         <div className="form-group">
                                             <label htmlFor="edit-materia">Matéria *</label>
@@ -453,23 +472,23 @@ export default function Admin() {
                                                 type="text"
                                                 id="edit-materia"
                                                 value={turmaEditando.materia}
-                                                onChange={(e) => setTurmaEditando({...turmaEditando, materia: e.target.value})}
+                                                onChange={(e) => setTurmaEditando({ ...turmaEditando, materia: e.target.value })}
                                                 required
                                             />
                                         </div>
-                                        
+
                                         <div className="form-group">
                                             <label htmlFor="edit-data">Data *</label>
                                             <input
                                                 type="date"
                                                 id="edit-data"
                                                 value={turmaEditando.data}
-                                                onChange={(e) => setTurmaEditando({...turmaEditando, data: e.target.value})}
+                                                onChange={(e) => setTurmaEditando({ ...turmaEditando, data: e.target.value })}
                                                 required
                                             />
                                         </div>
                                     </div>
-                                    
+
                                     <div className="form-row">
                                         <div className="form-group">
                                             <label htmlFor="edit-sala">Sala *</label>
@@ -477,26 +496,26 @@ export default function Admin() {
                                                 type="text"
                                                 id="edit-sala"
                                                 value={turmaEditando.sala}
-                                                onChange={(e) => setTurmaEditando({...turmaEditando, sala: e.target.value})}
+                                                onChange={(e) => setTurmaEditando({ ...turmaEditando, sala: e.target.value })}
                                                 required
                                             />
                                         </div>
-                                        
+
                                         <div className="form-group">
                                             <label htmlFor="edit-periodo">Período *</label>
                                             <select
                                                 id="edit-periodo"
                                                 value={turmaEditando.periodo}
-                                                onChange={(e) => setTurmaEditando({...turmaEditando, periodo: e.target.value})}
+                                                onChange={(e) => setTurmaEditando({ ...turmaEditando, periodo: e.target.value })}
                                                 required
                                             >
                                                 <option value="Matutino">Manhã</option>
                                                 <option value="Vespertino">Tarde</option>
                                                 <option value="Noturno">Noite</option>
-                                            </select>   
+                                            </select>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="form-row">
                                         <div className="form-group">
                                             <label htmlFor="edit-horarioInicio">Horário de Início *</label>
@@ -504,32 +523,32 @@ export default function Admin() {
                                                 type="time"
                                                 id="edit-horarioInicio"
                                                 value={turmaEditando.horarioInicio}
-                                                onChange={(e) => setTurmaEditando({...turmaEditando, horarioInicio: e.target.value})}
+                                                onChange={(e) => setTurmaEditando({ ...turmaEditando, horarioInicio: e.target.value })}
                                                 required
                                             />
                                         </div>
-                                        
+
                                         <div className="form-group">
                                             <label htmlFor="edit-horarioFim">Horário de Término *</label>
                                             <input
                                                 type="time"
                                                 id="edit-horarioFim"
                                                 value={turmaEditando.horarioFim}
-                                                onChange={(e) => setTurmaEditando({...turmaEditando, horarioFim: e.target.value})}
+                                                onChange={(e) => setTurmaEditando({ ...turmaEditando, horarioFim: e.target.value })}
                                                 required
                                             />
                                         </div>
                                     </div>
-                                    
+
                                     <div className="modal-actions">
-                                        <button 
+                                        <button
                                             className="delete-btn"
                                             onClick={confirmarExclusao}
                                             disabled={isLoading}
                                         >
                                             Excluir
                                         </button>
-                                        <button 
+                                        <button
                                             className="save-btn"
                                             onClick={salvarEdicao}
                                             disabled={isLoading}
